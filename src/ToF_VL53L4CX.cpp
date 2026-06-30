@@ -29,9 +29,24 @@ bool ToF_VL53L4CX::begin(uint8_t stAddress,
         return false;
     }
 
-    // These API calls are available in the ST class wrapper and are safe to ignore
-    // if a particular firmware version returns a non-zero status.
-    status = _sensor.VL53L4CX_SetDistanceMode((uint16_t)distanceMode);
+    VL53L4CX_DistanceModes stDistanceMode = VL53L4CX_DISTANCEMODE_MEDIUM;
+
+    switch (distanceMode) {
+        case DISTANCE_SHORT:
+            stDistanceMode = VL53L4CX_DISTANCEMODE_SHORT;
+            break;
+
+        case DISTANCE_LONG:
+            stDistanceMode = VL53L4CX_DISTANCEMODE_LONG;
+            break;
+
+        case DISTANCE_MEDIUM:
+        default:
+            stDistanceMode = VL53L4CX_DISTANCEMODE_MEDIUM;
+            break;
+    }
+
+    status = _sensor.VL53L4CX_SetDistanceMode(stDistanceMode);
     if (status != 0) {
         return false;
     }
@@ -84,7 +99,7 @@ bool ToF_VL53L4CX::update()
     _reading.objectCount = rangingData.NumberOfObjectsFound;
 
     if (_reading.objectCount > 0) {
-        const VL53L4CX_TargetRangeData_t& target = rangingData.RangeData[0];
+        const auto& target = rangingData.RangeData[0];
 
         _reading.distanceMm = target.RangeMilliMeter;
         _reading.rangeStatus = target.RangeStatus;
